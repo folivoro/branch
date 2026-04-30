@@ -13,19 +13,20 @@ use Composer\Util\HttpDownloader;
 use Composer\Util\Loop;
 use Composer\Util\ProcessExecutor;
 use Composer\EventDispatcher\EventDispatcher;
-use Composer\Package\Version\VersionParser;
 use Composer\Semver\Constraint\Constraint;
+use Composer\Semver\Constraint\MultiConstraint;
 use Composer\Script\ScriptEvents;
 
 class BranchPlugin implements PluginInterface, EventSubscriberInterface
 {
     private Composer $composer;
-    private IOInterface $io;
+    private ?IOInterface $io = null;
 
     public function activate(Composer $composer, IOInterface $io): void
     {
         $this->composer = $composer;
         $this->io = $io;
+        $this->io->write('<fg=cyan>🦥 folivoro/branch plugin activated</>');
     }
 
     public function deactivate(Composer $composer, IOInterface $io): void
@@ -64,13 +65,18 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
+            $this->io->write(sprintf('<fg=gray>  → %s</>', $packageName));
+
             $fullPath = $this->resolvePath($path);
             if (!file_exists($fullPath)) {
-                $this->io->write(sprintf('<warning>folivoro/branch: Path "%s" not found for package "%s"</warning>', $fullPath, $packageName));
+                $this->io->write(sprintf('<warning>⚠️ folivoro/branch: Path "%s" not found for package "%s"</warning>', $fullPath, $packageName));
                 continue;
             }
 
-            $version = $this->resolveVersion($packageName, $requires, $versionParser);
+            $version = $this->readLocalVersion($fullPath, $packageName)
+                ?? $this->resolveVersion($packageName, $requires);
+
+            $this->io->write(sprintf('<fg=green>  ✓ %s → %s (version: %s)</>', $packageName, $fullPath, $version ?? '<fg=yellow>auto</>'));
 
             $repository = new PathRepository(
                 [
@@ -160,7 +166,7 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
         return $path;
     }
 
-    private function resolveVersion(string $packageName, array $requires, VersionParser $versionParser): ?string
+    private function resolveVersion(string $packageName, array $requires): ?string
     {
         if (!isset($requires[$packageName])) {
             return null;
@@ -171,6 +177,58 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
             return null;
         }
 
-        return $constraint->getLowerBound()->getVersion();
+        if ($constraint instanceof Constraint) {
+            $version = $constraint->getVersion();
+            if (str_starts_with($version, 'dev-')) {
+                $this->log(sprintf('<fg=yellow>🌿 Using dev-branch "%s" for %s</>', $version, $packageName));
+                return $version;
+            }
+        }
+
+        if ($constraint instanceof MultiConstraint) {
+            foreach ($constraint->getConstraints() as $sub) {
+                if ($sub instanceof Constraint && str_starts_with($sub->getVersion(), 'dev-')) {
+                    $version = $sub->getVersion();
+                    $this->log(sprintf('<fg=yellow>🌿 Using dev-branch "%s" for %s (multi-constraint)</>', $version, $packageName));
+                    return $version;
+                }
+            }
+        }
+
+        $version = $constraint->getLowerBound()->getVersion();
+        $this->log(sprintf('<fg=gray>🔢 Using lower bound "%s" for %s</>', $version, $packageName));
+        return $version;
+    }
+
+    private function readLocalVersion(string $path, string $packageName): ?string
+    {
+        $composerJsonPath = rtrim($path, '/') . '/composer.json';
+        if (!file_exists($composerJsonPath)) {
+            return null;
+        }
+
+        $content = file_get_contents($composerJsonPath);
+        if ($content === false) {
+            return null;
+        }
+
+        $data = json_decode($content, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+
+        if (isset($data['version'])) {
+            $this->log(sprintf('<fg=yellow>📖 Read version "%s" from local composer.json for %s</>', $data['version'], $packageName));
+            return $data['version'];
+        }
+
+        return null;
+    }
+
+    private function log(string $message): void
+    {
+        if ($this->io !== null) {
+            $this->io->write($message);
+        }
     }
 }
