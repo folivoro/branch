@@ -58,7 +58,8 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
         $loop = $this->composer->getLoop();
         $versionParser = new VersionParser();
 
-        foreach ($localConfig['packages'] as $packageName => $path) {
+
+        foreach ($localConfig as $packageName => $path) {
             if (!is_string($path)) {
                 continue;
             }
