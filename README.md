@@ -71,13 +71,12 @@ composer require --dev folivoro/branch
 
 ## Configuration
 
-The plugin reads `branch-local.json` from the project root:
+The plugin reads `branch-local.json` from the project root as a flat key-value map:
 
 ```json
 {
-    "packages": {
-        "vendor/package-name": "../path/to/package"
-    }
+    "vendor/package-name": "../path/to/package",
+    "another/vendor": "/absolute/path/to/package"
 }
 ```
 
