@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Folivoro\Branch\Tests;
 
+use Composer\Package\Link;
 use Composer\Semver\Constraint\Constraint;
+use Composer\Semver\Constraint\MultiConstraint;
 use Composer\Semver\Intervals;
 use Folivoro\Branch\BranchPlugin;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 
 class BranchPluginTest extends TestCase
 {
