@@ -50,14 +50,16 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
         $localConfig = $this->loadLocalConfig();
 
         if ($localConfig === null || !isset($localConfig)) {
+            $this->io->write('<fg=yellow>📭 folivoro/branch: No branch-local.json found, skipping</>');
             return;
         }
+
+        $this->io->write(sprintf('<fg=cyan>🔧 folivoro/branch: Resolving %d package(s) from branch-local.json</>', count($localConfig)));
 
         $repoManager = $this->composer->getRepositoryManager();
         $config = $this->composer->getConfig();
         $requires = $this->composer->getPackage()->getRequires();
         $loop = $this->composer->getLoop();
-        $versionParser = new VersionParser();
 
 
         foreach ($localConfig as $packageName => $path) {
@@ -92,6 +94,8 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
 
             $repoManager->prependRepository($repository);
         }
+
+        $this->io->write('<fg=cyan>📦 folivoro/branch: All local packages registered</>');
     }
 
     private function loadLocalConfig(): ?array
@@ -106,6 +110,8 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
             return null;
         }
 
+        $this->io->write(sprintf('<fg=cyan>📄 folivoro/branch: Found branch-local.json at %s</>', $localJsonPath));
+
         $content = file_get_contents($localJsonPath);
         if ($content === false) {
             return null;
@@ -113,7 +119,7 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
 
         $config = json_decode($content, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->io->write('<warning>folivoro/branch: Invalid branch-local.json format</warning>');
+            $this->io->write('<warning>❌ folivoro/branch: Invalid branch-local.json format</warning>');
             return null;
         }
 
