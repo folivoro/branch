@@ -94,7 +94,7 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
             return null;
         }
 
-        $localJsonPath = $projectRoot . '/local.json';
+        $localJsonPath = $projectRoot . '/branch-local.json';
         if (!file_exists($localJsonPath)) {
             return null;
         }
@@ -106,7 +106,7 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
 
         $config = json_decode($content, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->io->write('<warning>folivoro/branch: Invalid local.json format</warning>');
+            $this->io->write('<warning>folivoro/branch: Invalid branch-local.json format</warning>');
             return null;
         }
 

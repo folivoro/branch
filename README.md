@@ -13,7 +13,7 @@ Both approaches are error-prone and easy to forget.
 
 ## The Solution
 
-Drop a `local.json` next to your `composer.json` and you're done. No modifications needed.
+Drop a `branch-local.json` next to your `composer.json` and you're done. No modifications needed.
 
 ```bash
 cd ~/projects/my-app
@@ -22,13 +22,11 @@ composer global require folivoro/branch
 echo '{"config":{"allow-plugins":{"folivoro/branch":true}}}' | jq -s '.[0].config.allow-plugins += input.config.allow-plugins' ~/.composer/composer.json ~/.composer/composer.json > tmp && mv tmp ~/.composer/composer.json
 ```
 
-Create `local.json`:
+Create `branch-local.json`:
 ```json
 {
-    "packages": {
-        "acme/widget": "../acme-widget",
-        "acme/gizmo": "/Users/dev/acme-gizmo"
-    }
+    "acme/widget": "../acme-widget",
+    "acme/gizmo": "/Users/dev/acme-gizmo"
 }
 ```
 
@@ -36,7 +34,7 @@ Run `composer install` or `composer update`. That's it.
 
 ## How It Works
 
-The plugin reads `local.json` at `pre-install` and `pre-update` time and registers each path as a Composer `PathRepository`. It automatically extracts the version constraint from your `composer.json`'s `require` block and uses the lower bound, so your local branches can be named anything.
+The plugin reads `branch-local.json` at `pre-install` and `pre-update` time and registers each path as a Composer `PathRepository`. It automatically extracts the version constraint from your `composer.json`'s `require` block and uses the lower bound, so your local branches can be named anything.
 
 ### Version Resolution
 
@@ -73,7 +71,7 @@ composer require --dev folivoro/branch
 
 ## Configuration
 
-The plugin reads `local.json` from the project root:
+The plugin reads `branch-local.json` from the project root:
 
 ```json
 {
@@ -85,7 +83,7 @@ The plugin reads `local.json` from the project root:
 
 ### Global vs Per-project
 
-| Mode | local.json location | Use case |
+| Mode | branch-local.json location | Use case |
 |------|---------------------|----------|
 | **Global** | Project root | Works across all projects |
 | **Per-project** | Inside a project | Project-specific overrides |

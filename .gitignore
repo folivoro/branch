@@ -1,4 +1,5 @@
-local.json
+branch-local.json
 vendor/
 composer.lock
 .phpunit.result.cache
+.idea
