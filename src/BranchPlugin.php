@@ -15,6 +15,7 @@ use Composer\Util\ProcessExecutor;
 use Composer\EventDispatcher\EventDispatcher;
 use Composer\Package\Version\VersionParser;
 use Composer\Semver\Constraint\Constraint;
+use Composer\Script\ScriptEvents;
 
 class BranchPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -38,15 +39,16 @@ class BranchPlugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'pre-install' => 'onPreInstallOrUpdate',
-            'pre-update' => 'onPreInstallOrUpdate',
+            ScriptEvents::PRE_INSTALL_CMD => 'onPreInstallOrUpdate',
+            ScriptEvents::PRE_UPDATE_CMD => 'onPreInstallOrUpdate',
         ];
     }
 
     public function onPreInstallOrUpdate(): void
     {
         $localConfig = $this->loadLocalConfig();
-        if ($localConfig === null || !isset($localConfig['packages'])) {
+
+        if ($localConfig === null || !isset($localConfig)) {
             return;
         }
 
