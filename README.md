@@ -1,4 +1,10 @@
-# 🦥 folivoro/branch
+<p align="center">
+<a href="https://folivoro.com" target="_blank">
+<img src="https://raw.githubusercontent.com/folivoro/art/refs/heads/main/sloth-logo.svg" alt="Sloth Logo" width="200" height="200" />
+</a>
+</p>
+
+# Branch
 
 > Local package development for Composer without touching composer.json
 
